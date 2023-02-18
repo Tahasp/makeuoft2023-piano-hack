@@ -25,14 +25,21 @@ def main():
     #     print(msg)
     #     input()
 
-    myiter = iter(MidiFile('for_elise_by_beethoven.mid').play())
+    myiter = iter(MidiFile('for_elise_by_beethoven.mid'))
     for msg in input_port:
         print("input:", msg)
         outmsg = next(myiter)
+        while outmsg.is_meta or outmsg.type == 'program_change':
+            if outmsg.is_meta:
+                outmsg = next(myiter)
+            else:
+                output_port.send(outmsg)
+                outmsg = next(myiter)
         
         outmsg.time = 0
-        output_port.send(outmsg)
         print("output:", outmsg)
+        output_port.send(outmsg)
+        
 
 
 if __name__ == "__main__":
