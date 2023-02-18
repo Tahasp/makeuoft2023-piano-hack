@@ -16,7 +16,7 @@ def main():
     outputs: list[str] = mido.get_output_names()
     inputs: list[str] = mido.get_input_names()
     output = list_select(outputs, "midi output")
-    input = list_select(outputs, "midi output")
+    input = list_select(outputs, "midi input")
     output_port = mido.open_output(output)
     input_port = mido.open_input(input)
 
