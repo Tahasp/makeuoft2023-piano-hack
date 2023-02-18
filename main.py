@@ -2,7 +2,7 @@ import mido
 
 
 def list_select(selections: list[str], name: str):
-    if len(selections) == 1:
+    if len(set(selections)) == 1:
         return selections[0]
 
     for i, selection in enumerate(selections):
