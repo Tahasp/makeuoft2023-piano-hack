@@ -1,6 +1,6 @@
 import mido
 from mido import MidiFile
-
+from UI import run_display
 from mido.midifiles.midifiles import time
 
 
@@ -88,6 +88,7 @@ def set_volume(out_port, vol):
 
 
 def main():
+    run_display()
     outputs: list[str] = mido.get_output_names()
     inputs: list[str] = mido.get_input_names()
     output = list_select(outputs, "midi output")
