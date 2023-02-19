@@ -49,6 +49,17 @@ def run_display():
 
         l2.place(x=250, y=250)
 
+        def selected_item():
+
+            # Traverse the tuple returned by
+            # curselection method and print
+            # corresponding value(s) in the listbox
+            for i in l2.curselection():
+                print(l2.get(i))
+
+        selected_item()
+        #print("h", a)
+
     b1 = tk.Button(win, text="Song List", command=s2, bg="yellow")
     b1.place(x=250, y=150)
 
