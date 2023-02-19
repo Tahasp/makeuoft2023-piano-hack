@@ -25,7 +25,8 @@ def list_select(selections, name):
 class SingleNoteReader:
     def __init__(self, slowness=1):
         self.i = 0
-        self.file = list(MidiFile("./Piano Sonata n08 op13 3mov ''Pathetique''.mid"))
+        # self.file = list(MidiFile("./Piano Sonata n08 op13 3mov ''Pathetique''.mid"))
+        self.file = list(MidiFile("./for_elise_by_beethoven.mid"))
         self.last_skip = 0
         self.one_note = False
         self.slowness = slowness
@@ -83,7 +84,7 @@ def runchunk(out_port, chunk, sleept):
 
 def set_volume(out_port, vol):
     msg = mido.Message("control_change", channel=0, control=7, value=vol)
-    out_port.send()
+    out_port.send(msg)
 
 
 def main():
@@ -93,6 +94,9 @@ def main():
     input_dev = list_select(outputs, "midi input")
     output_port = mido.open_output(output)
     input_port = mido.open_input(input_dev)
+
+    # vol = int(input("volume: "))
+    # set_volume(output_port, vol)
 
     music = SingleNoteReader()
 
