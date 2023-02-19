@@ -31,7 +31,7 @@ class SingleNoteReader:
 
         to_find = set()
         time_so_far = 0
-        slowness = 2
+        slowness = 1.5
         while True:
             if outmsg.is_meta:
                 self.i += 1
