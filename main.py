@@ -9,6 +9,11 @@ def list_select(selections, name):
     if len(set(selections)) == 1:
         return selections[0]
 
+    # automatic casio selection
+    for selection in selections:
+        if selection.find("CASIO") >= 0:
+            return selection
+
     for i, selection in enumerate(selections):
         print(f"{i + 1}. {selection}")
 
