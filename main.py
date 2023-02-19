@@ -5,6 +5,9 @@ import threading
 from mido.midifiles.midifiles import time
 
 
+PIANO_STATE = 0
+
+
 def list_select(selections, name):
     if len(set(selections)) == 1:
         return selections[0]
@@ -36,7 +39,7 @@ class SingleNoteReader:
 
         to_find = set()
         time_so_far = 0
-        slowness = 2
+        slowness = 1
         while True:
             if outmsg.is_meta:
                 self.i += 1
@@ -73,12 +76,20 @@ class SingleNoteReader:
 
 
 def runmsg(out_port, msg):
+    global PIANO_STATE
+
     time.sleep(msg.time)
     print(msg)
     out_port.send(msg)
 
+    time.sleep(0.1)
+    if msg.type == "note_on":
+        PIANO_STATE -= 1
+
 
 def main():
+    global PIANO_STATE
+
     outputs: list[str] = mido.get_output_names()
     inputs: list[str] = mido.get_input_names()
     output = list_select(outputs, "midi output")
@@ -97,8 +108,11 @@ def main():
     for inmsg in input_port:
         print("input:", inmsg)
         # output_port.send(inmsg)
-        if inmsg.type == "note_on":
+        if inmsg.type == "note_on" and PIANO_STATE == 0:
             chunk = next(myiter)
+            for outmsg in chunk:
+                if outmsg.type == "note_on":
+                    PIANO_STATE += 1
             for outmsg in chunk:
                 if outmsg.type == "note_on" or outmsg.type == "note_off":
                     x = threading.Thread(target=runmsg, args=(output_port, outmsg,))
