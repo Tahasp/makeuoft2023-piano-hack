@@ -183,7 +183,7 @@ def switch():
 
 def set_slowness(slowf):
     global MUSIC
-    MUSIC.set_slowness(slowf)
+    MUSIC.set_slowness(float(slowf))
 
 
 def onselect(evt):
