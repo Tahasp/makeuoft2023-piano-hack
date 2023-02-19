@@ -1,7 +1,12 @@
 import mido
 from mido import MidiFile
-from UI import run_display
 from mido.midifiles.midifiles import time
+import threading
+
+import tkinter as tk
+from tkinter import HORIZONTAL, CENTER, BROWSE
+import glob
+import sys
 
 
 def list_select(selections, name):
@@ -23,10 +28,9 @@ def list_select(selections, name):
 
 
 class SingleNoteReader:
-    def __init__(self, slowness=1):
+    def __init__(self, slowness=1, filename="./for-elise.mid"):
         self.i = 0
-        # self.file = list(MidiFile("./Piano Sonata n08 op13 3mov ''Pathetique''.mid"))
-        self.file = list(MidiFile("./for_elise_by_beethoven.mid"))
+        self.file = list(MidiFile(filename))
         self.last_skip = 0
         self.one_note = False
         self.slowness = slowness
@@ -37,6 +41,9 @@ class SingleNoteReader:
 
     def set_slowness(self, slowness):
         self.slowness = slowness
+
+    def reset(self):
+        self.i = 0
 
     def __next__(self):  # get the next music chunk
         msgs = []
@@ -75,6 +82,10 @@ class SingleNoteReader:
         return msgs
 
 
+HACKER_TYPE = True
+MUSIC = SingleNoteReader()
+
+
 def runchunk(out_port, chunk, sleept):
     if sleept > 0:
         time.sleep(sleept)
@@ -88,7 +99,8 @@ def set_volume(out_port, vol):
 
 
 def main():
-    run_display()
+    global HACKER_TYPE, MUSIC
+
     outputs: list[str] = mido.get_output_names()
     inputs: list[str] = mido.get_input_names()
     output = list_select(outputs, "midi output")
@@ -105,11 +117,15 @@ def main():
     next_n_epsilon = 0.05
     last_chunk_time = time.time()
 
-    myiter = iter(music)
+    myiter = iter(MUSIC)
     nchunk = next(myiter)
 
     note_to_close = {}
     for inmsg in input_port:
+        if not HACKER_TYPE:
+            output_port.send(inmsg)
+            continue
+
         now_time = time.time()
         if inmsg.type == "note_on":
             if now_time - last_chunk_time < epsilon:
@@ -146,5 +162,74 @@ def main():
             print("input:", inmsg)
 
 
+#############
+# UI
+#############
+
+def quit(win):
+    win.quit()
+    sys.exit()
+
+
+def switch():
+    global HACKER_TYPE
+
+    HACKER_TYPE = not HACKER_TYPE
+
+
+def run_display():
+    global MUSIC
+
+    win = tk.Tk()
+
+    width = win.winfo_screenwidth()
+    height = win.winfo_screenheight()
+
+    win.geometry("%dx%d" % (width,height))
+    win.configure(bg="grey")
+
+    # win.attributes('-fullscreen', True)
+    win.title('Piano Specialist')
+
+    label = tk.Label(win, text="Paino Specialist Menu")
+    label.pack()
+
+    button = tk.Button(text="Switch", width=10, height=20, bg="white", fg="blue", font=("Courier", 18), command=lambda: switch())
+    button.place(x=0, y=0)
+
+    button1 = tk.Button(text="Reset", width=10, height=20, bg="white", fg="blue", font=("Courier", 18), command=lambda: MUSIC.reset())
+    button1.place(x=700, y=0)
+
+    button2 = tk.Button(text="Quit", width=15, height=8, bg="cyan", fg="red", font=("Courier", 18), command=lambda: quit(win))
+    button2.place(x=250, y=400)
+
+    # s1 = tk.Scale(win, variable=v1, from_=0.5, to=2.5, orient=HORIZONTAL)
+    s1 = tk.Scale(win, from_=0.5, to=2.5, digits=2, resolution=0.05,
+                  orient=HORIZONTAL, sliderlength=60, length=300, width=50)
+    s1.set(1.0)
+
+    l3 = tk.Label(win, text="Slowness", font=("Courier", 20))
+
+    def s2():
+        l2 = tk.Listbox(bg="white", height=5, font=("Courier", 20), selectmode=BROWSE)
+        for i, song in enumerate(glob.glob("./*.mid")):
+            l2.insert(i + 1, song)
+
+        l2.place(x=250, y=250)
+
+    b1 = tk.Button(win, text="Song List", command=s2, bg="yellow")
+    b1.place(x=250, y=150)
+
+    l1 = tk.Label(win)
+    l1.pack()
+
+    s1.pack(anchor=CENTER)
+    l3.pack()
+
+    win.mainloop()
+
+
 if __name__ == "__main__":
-    main()
+    pt = threading.Thread(target=main)
+    pt.start()
+    run_display()

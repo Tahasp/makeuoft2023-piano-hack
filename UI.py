@@ -3,13 +3,9 @@ from tkinter import HORIZONTAL, CENTER, BROWSE
 import glob
 
 
-# button = tk.Button(
-#     text="Switch to NM",
-#     width=10,
-#     height=10,
-#     bg="grey",
-#     fg="yellow"
-# )
+def quit(win):
+    win.quit()
+
 
 def run_display():
     win = tk.Tk()
@@ -32,7 +28,7 @@ def run_display():
     button1 = tk.Button(text="Reset", width=10, height=20, bg="white", fg="blue", font=("Courier", 18))
     button1.place(x=700, y=0)
 
-    button2 = tk.Button(text="Quit", width=15, height=8, bg="cyan", fg="red", font=("Courier", 18), command=lambda: win.quit())
+    button2 = tk.Button(text="Quit", width=15, height=8, bg="cyan", fg="red", font=("Courier", 18), command=lambda: quit(win))
     button2.place(x=250, y=400)
 
     # s1 = tk.Scale(win, variable=v1, from_=0.5, to=2.5, orient=HORIZONTAL)
