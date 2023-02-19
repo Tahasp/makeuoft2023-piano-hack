@@ -81,6 +81,11 @@ def runchunk(out_port, chunk, sleept):
         out_port.send(note)
 
 
+def set_volume(out_port, vol):
+    msg = mido.Message("control_change", channel=0, control=7, value=vol)
+    out_port.send()
+
+
 def main():
     outputs: list[str] = mido.get_output_names()
     inputs: list[str] = mido.get_input_names()
@@ -90,11 +95,6 @@ def main():
     input_port = mido.open_input(input_dev)
 
     music = SingleNoteReader()
-    # for i, chunk in enumerate(music):
-    #     print(f"chunk {i}")
-    #     for note in chunk:
-    #         print(note)
-    #     input()
 
     epsilon = 0.15
     next_n_epsilon = 0.05
