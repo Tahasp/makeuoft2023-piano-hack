@@ -8,6 +8,8 @@ from tkinter import HORIZONTAL, CENTER, BROWSE
 import glob
 import sys
 
+# import RPi.GPIO as GPIO
+
 
 def list_select(selections, name):
     if len(set(selections)) == 1:
@@ -88,6 +90,7 @@ class SingleNoteReader:
 
 HACKER_TYPE = True
 MUSIC = SingleNoteReader()
+OUTPORT = None
 
 
 def runchunk(out_port, chunk, sleept):
@@ -97,13 +100,16 @@ def runchunk(out_port, chunk, sleept):
         out_port.send(note)
 
 
-def set_volume(out_port, vol):
-    msg = mido.Message("control_change", channel=0, control=7, value=vol)
-    out_port.send(msg)
+def set_volume(vol):
+    global OUTPORT
+
+    if OUTPORT is not None:
+        msg = mido.Message("control_change", channel=0, control=7, value=vol)
+        OUTPORT.send(msg)
 
 
 def main():
-    global HACKER_TYPE, MUSIC
+    global HACKER_TYPE, MUSIC, OUTPORT
 
     outputs: list[str] = mido.get_output_names()
     inputs: list[str] = mido.get_input_names()
@@ -112,8 +118,7 @@ def main():
     output_port = mido.open_output(output)
     input_port = mido.open_input(input_dev)
 
-    # vol = int(input("volume: "))
-    # set_volume(output_port, vol)
+    OUTPORT = output_port
 
     music = SingleNoteReader()
 
@@ -203,6 +208,7 @@ def run_display():
     global MUSIC
 
     win = tk.Tk()
+    win.tk.call('tk', 'scaling', 2.0)
 
     width = win.winfo_screenwidth()
     height = win.winfo_screenheight()
@@ -253,7 +259,55 @@ def run_display():
     win.mainloop()
 
 
+# def detect_distance():
+#     try:
+#         GPIO.setmode(GPIO.BCM)
+#         GPIO.setwarnings(False)
+
+#         TRIG = 23
+#         ECHO = 24
+#         maxTime = 0.04
+
+#         while True:
+#             GPIO.setup(TRIG,GPIO.OUT)
+#             GPIO.setup(ECHO,GPIO.IN)
+
+#             GPIO.output(TRIG,False)
+
+#             time.sleep(0.01)
+
+#             GPIO.output(TRIG,True)
+
+#             time.sleep(0.00001)
+
+#             GPIO.output(TRIG,False)
+
+#             pulse_start = time.time()
+#             timeout = pulse_start + maxTime
+#             while GPIO.input(ECHO) == 0 and pulse_start < timeout:
+#                 pulse_start = time.time()
+
+#             pulse_end = time.time()
+#             timeout = pulse_end + maxTime
+#             while GPIO.input(ECHO) == 1 and pulse_end < timeout:
+#                 pulse_end = time.time()
+
+#             pulse_duration = pulse_end - pulse_start
+#             distance = pulse_duration * 17000
+#             distance = round(distance, 2)
+
+#             # print(distance)
+#             if distance < 8:
+#                 set_volume(127)
+#             else:
+#                 set_volume(80)
+#     except:
+#         GPIO.cleanup()
+
+
 if __name__ == "__main__":
     pt = threading.Thread(target=run_display)
     pt.start()
+    # pt2 = threading.Thread(target=detect_distance)
+    # pt2.start()
     main()
