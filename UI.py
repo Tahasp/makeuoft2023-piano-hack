@@ -25,18 +25,19 @@ def run_display():
     label = tk.Label(win, text="Paino Specialist Menu")
     label.pack()
 
-    button = tk.Button(text="Switch", width=15, height=20, bg="black", fg="blue", font=("Courier", 20))
+    button = tk.Button(text="Switch", width=15, height=20, bg="white", fg="blue", font=("Courier", 20))
     button.place(x=50, y=250)
 
-    button1 = tk.Button(text="Reset", width=15, height=20, bg="black", fg="blue", font=("Courier", 20))
+    button1 = tk.Button(text="Reset", width=15, height=20, bg="white", fg="blue", font=("Courier", 20))
     button1.place(x=1190, y=250)
 
-    button2 = tk.Button(text="Quit", width=15, height=12, bg="cyan", fg="red", font=("Courier", 20))
-    button2.place(x=635, y=600)
+    button2 = tk.Button(text="Quit", width=15, height=12, bg="black", fg="red", font=("Courier", 20))
+    button2.place(x=width//2, y=height//2)
 
     # s1 = tk.Scale(win, variable=v1, from_=0.5, to=2.5, orient=HORIZONTAL)
     s1 = tk.Scale(win, from_=0.5, to=2.5, digits=2, resolution=0.05,
                   orient=HORIZONTAL, sliderlength=60, length=300, width=50)
+    s1.set(1.0)
 
     l3 = tk.Label(win, text="Slowness", font=("Courier", 20))
 
