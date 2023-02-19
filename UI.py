@@ -1,5 +1,6 @@
 import tkinter as tk
 from tkinter import HORIZONTAL, CENTER, BROWSE
+import glob
 
 
 # button = tk.Button(
@@ -25,10 +26,10 @@ def run_display():
     label = tk.Label(win, text="Paino Specialist Menu")
     label.pack()
 
-    button = tk.Button(text="Switch", width=15, height=20, bg="black", fg="blue", font=("Courier", 20))
+    button = tk.Button(text="Switch", width=15, height=20, bg="white", fg="blue", font=("Courier", 20))
     button.place(x=50, y=250)
 
-    button1 = tk.Button(text="Reset", width=15, height=20, bg="black", fg="blue", font=("Courier", 20))
+    button1 = tk.Button(text="Reset", width=15, height=20, bg="white", fg="blue", font=("Courier", 20))
     button1.place(x=1190, y=250)
 
     button2 = tk.Button(text="Quit", width=15, height=12, bg="cyan", fg="red", font=("Courier", 20))
@@ -41,13 +42,11 @@ def run_display():
     l3 = tk.Label(win, text="Slowness", font=("Courier", 20))
 
     def s2():
-        l2 = tk.Listbox(bg="black", font=("Courier", 20), selectmode=BROWSE)
-        l2.insert(1, "Beethoven")
-        l2.insert(2, "Beethoven")
-        l2.insert(3, "Beethoven")
-        l2.insert(4, "Beethoven")
+        l2 = tk.Listbox(bg="white", font=("Courier", 20), selectmode=BROWSE)
+        for i, song in enumerate(glob.glob("./*.mid")):
+            l2.insert(i + 1, song)
 
-        l2.place(x=635, y= 250)
+        l2.place(x=635, y=250)
 
     b1 = tk.Button(win, text="Song List", command=s2, bg="yellow")
     b1.place(x=635, y=200)
