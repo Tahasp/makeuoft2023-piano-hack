@@ -223,13 +223,16 @@ def run_display():
     label.pack()
 
     button = tk.Button(text="Switch", width=10, height=20, bg="white", fg="blue", font=("Courier", 18), command=lambda: switch())
-    button.place(x=0, y=0)
+    # button.place(x=0, y=0)
+    button.place(x=(width // 2 - width // 3), y=height // 4)
 
     button1 = tk.Button(text="Reset", width=10, height=20, bg="white", fg="blue", font=("Courier", 18), command=lambda: MUSIC.reset())
-    button1.place(x=700, y=0)
+    # button1.place(x=700, y=0)
+    button1.place(x=(width//2 + width//4), y=height//4)
 
     button2 = tk.Button(text="Quit", width=15, height=8, bg="cyan", fg="red", font=("Courier", 18), command=lambda: quit(win))
-    button2.place(x=250, y=400)
+    # button2.place(x=250, y=400)
+    button2.place(x=width//2, y=height//4 + height//3)
 
     # s1 = tk.Scale(win, variable=v1, from_=0.5, to=2.5, orient=HORIZONTAL)
     s1 = tk.Scale(win, from_=0.5, to=2.5, digits=2, resolution=0.05,
