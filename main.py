@@ -1,6 +1,5 @@
 import mido
 from mido import MidiFile
-import threading
 
 from mido.midifiles.midifiles import time
 
