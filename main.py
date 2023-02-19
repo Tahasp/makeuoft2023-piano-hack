@@ -5,16 +5,15 @@ import threading
 from mido.midifiles.midifiles import time
 
 
-PIANO_STATE = 0
-
-
 def list_select(selections, name):
     if len(set(selections)) == 1:
+        print(f"Autoselected {name}:", selections[0])
         return selections[0]
 
     # automatic casio selection
     for selection in selections:
         if selection.find("CASIO") >= 0:
+            print(f"Autoselected {name}:", selection)
             return selection
 
     for i, selection in enumerate(selections):
@@ -25,49 +24,50 @@ def list_select(selections, name):
 
 
 class SingleNoteReader:
-    def __init__(self, max=0):
+    def __init__(self, slowness=1):
         self.i = 0
-        self.file = list(MidiFile('for_elise_by_beethoven.mid'))
+        self.file = list(MidiFile("./Piano Sonata n08 op13 3mov ''Pathetique''.mid"))
+        self.last_skip = 0
+        self.one_note = False
+        self.slowness = slowness
 
     def __iter__(self):
         self.i = 0
         return self
 
+    def set_slowness(self, slowness):
+        self.slowness = slowness
+
     def __next__(self):  # get the next music chunk
         msgs = []
         outmsg = self.file[self.i]
 
-        to_find = set()
-        time_so_far = 0
-        slowness = 1
+        one_msg = False
+        skip_so_far = self.last_skip
         while True:
             if outmsg.is_meta:
                 self.i += 1
-            elif outmsg.type == 'program_change':
-                msgs.append(outmsg)
-                self.i += 1
             elif outmsg.type == 'note_on':
-                if len(to_find) == 0:
+                if one_msg and (skip_so_far != 0 or outmsg.time != 0):
+                    self.last_skip = skip_so_far
+                    break
+
+                outmsg.time += skip_so_far
+                if not self.one_note:
                     outmsg.time = 0
-                else:
-                    time_so_far += outmsg.time
-                    outmsg.time = time_so_far * slowness
-                outmsg.channel = 1
+                outmsg.time *= self.slowness
+
+                skip_so_far = 0
                 msgs.append(outmsg)
-                to_find.add(outmsg.note)
+                one_msg = True
+                self.one_note = True
                 self.i += 1
             elif outmsg.type == 'note_off':
-                time_so_far += outmsg.time
-                outmsg.time = time_so_far * slowness
-                outmsg.velocity = 64
-                outmsg.channel = 1
-                msgs.append(outmsg)
-                to_find.remove(outmsg.note)
+                skip_so_far += outmsg.time
                 self.i += 1
-                if len(to_find) == 0:
-                    break
             else:
-                print("ERROR: unsupported message type!!")
+                msgs.append(outmsg)
+                self.i += 1
 
             if self.i >= len(self.file):
                 break
@@ -75,21 +75,14 @@ class SingleNoteReader:
         return msgs
 
 
-def runmsg(out_port, msg):
-    global PIANO_STATE
-
-    time.sleep(msg.time)
-    print(msg)
-    out_port.send(msg)
-
-    time.sleep(0.1)
-    if msg.type == "note_on":
-        PIANO_STATE -= 1
+def runchunk(out_port, chunk, sleept):
+    if sleept > 0:
+        time.sleep(sleept)
+    for note in chunk:
+        out_port.send(note)
 
 
 def main():
-    global PIANO_STATE
-
     outputs: list[str] = mido.get_output_names()
     inputs: list[str] = mido.get_input_names()
     output = list_select(outputs, "midi output")
@@ -98,28 +91,55 @@ def main():
     input_port = mido.open_input(input_dev)
 
     music = SingleNoteReader()
-    # for i, chunk in enumerate(notes):
+    # for i, chunk in enumerate(music):
     #     print(f"chunk {i}")
     #     for note in chunk:
     #         print(note)
     #     input()
 
+    epsilon = 0.15
+    next_n_epsilon = 0.05
+    last_chunk_time = time.time()
+
     myiter = iter(music)
+    nchunk = next(myiter)
+
+    note_to_close = {}
     for inmsg in input_port:
-        print("input:", inmsg)
-        # output_port.send(inmsg)
-        if inmsg.type == "note_on" and PIANO_STATE == 0:
-            chunk = next(myiter)
-            for outmsg in chunk:
-                if outmsg.type == "note_on":
-                    PIANO_STATE += 1
-            for outmsg in chunk:
-                if outmsg.type == "note_on" or outmsg.type == "note_off":
-                    x = threading.Thread(target=runmsg, args=(output_port, outmsg,))
-                    x.start()
-                else:
-                    output_port.send(outmsg)
-                    print(outmsg)
+        now_time = time.time()
+        if inmsg.type == "note_on":
+            if now_time - last_chunk_time < epsilon:
+                if now_time - last_chunk_time < next_n_epsilon:
+                    print("input (CANCELLED):", inmsg)
+                    continue
+                print("input (POSTPONED):", inmsg)
+                sleept = epsilon - now_time - last_chunk_time
+            else:
+                sleept = 0
+            print("input:", inmsg)
+            note_to_close[inmsg.note] = nchunk
+            runchunk(output_port, nchunk, sleept)
+            last_chunk_time = time.time()
+            nchunk = next(myiter)
+            for note in nchunk:
+                if note.type == "note_on":
+                    epsilon = note.time
+                    next_n_epsilon = epsilon / 4
+                    break
+        elif inmsg.type == "note_off":
+            chunk = note_to_close.get(inmsg.note)
+            if not chunk:
+                print("input (CANCELLED):", inmsg)
+                continue
+            print("input:", inmsg)
+            for note in chunk:
+                if note.type == "note_on":
+                    newnote = mido.Message("note_off", channel=note.channel, note=note.note, velocity=note.velocity)
+                    output_port.send(newnote)
+            note_to_close.pop(inmsg.note)
+            last_chunk_time = time.time()
+        else:
+            print("input:", inmsg)
 
 
 if __name__ == "__main__":
