@@ -13,6 +13,46 @@ def list_select(selections: list[str], name: str):
     return selections[index - 1]
 
 
+class SingleNoteReader:
+    def __init__(self, max=0):
+        self.i = 0
+        self.file = list(MidiFile('for_elise_by_beethoven.mid'))
+
+    def __iter__(self):
+        self.i = 0
+        return self
+
+    def __next__(self):  # get the next music chunk
+        msgs = []
+        outmsg = self.file[self.i]
+
+        to_find = set()
+        while True:
+            if outmsg.is_meta:
+                self.i += 1
+            elif outmsg.type == 'program_change':
+                msgs.append(outmsg)
+                self.i += 1
+            elif outmsg.type == 'note_on':
+                # outmsg.time = 0
+                msgs.append(outmsg)
+                to_find.add(outmsg.note)
+                self.i += 1
+            elif outmsg.type == 'note_off':
+                msgs.append(outmsg)
+                to_find.remove(outmsg.note)
+                self.i += 1
+                if len(to_find) == 0:
+                    break
+            else:
+                print("ERROR: unsupported message type!!")
+
+            if self.i >= len(self.file):
+                break
+            outmsg = self.file[self.i]
+        return msgs
+
+
 def main():
     outputs: list[str] = mido.get_output_names()
     inputs: list[str] = mido.get_input_names()
@@ -21,25 +61,19 @@ def main():
     output_port = mido.open_output(output)
     input_port = mido.open_input(input_dev)
 
-    # for msg in MidiFile('for_elise_by_beethoven.mid').play():
-    #     print(msg)
+    music = SingleNoteReader()
+    # for i, chunk in enumerate(notes):
+    #     print(f"chunk {i}")
+    #     for note in chunk:
+    #         print(note)
     #     input()
 
-    myiter = iter(MidiFile('for_elise_by_beethoven.mid'))
-    for msg in input_port:
-        print("input:", msg)
-        outmsg = next(myiter)
-        while outmsg.is_meta or outmsg.type == 'program_change':
-            if outmsg.is_meta:
-                outmsg = next(myiter)
-            else:
-                output_port.send(outmsg)
-                outmsg = next(myiter)
-        
-        outmsg.time = 0
-        print("output:", outmsg)
-        output_port.send(outmsg)
-        
+    myiter = iter(music)
+    for inmsg in input_port:
+        print("input:", inmsg)
+        chunk = next(myiter)
+        for outmsg in chunk:
+            output_port.send(outmsg)
 
 
 if __name__ == "__main__":
