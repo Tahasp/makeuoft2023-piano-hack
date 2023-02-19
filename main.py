@@ -45,6 +45,10 @@ class SingleNoteReader:
     def reset(self):
         self.i = 0
 
+    def set_file(self, filename):
+        self.i = 0
+        self.file = list(MidiFile(filename))
+
     def __next__(self):  # get the next music chunk
         msgs = []
         outmsg = self.file[self.i]
@@ -167,14 +171,32 @@ def main():
 #############
 
 def quit(win):
+    win.destroy()
     win.quit()
-    sys.exit()
 
 
 def switch():
     global HACKER_TYPE
 
     HACKER_TYPE = not HACKER_TYPE
+
+
+def set_slowness(slowf):
+    global MUSIC
+    MUSIC.set_slowness(slowf)
+
+
+def onselect(evt):
+    global MUSIC
+
+    # Note here that Tkinter passes an event object to onselect()
+    try:
+        w = evt.widget
+        index = int(w.curselection()[0])
+        value = w.get(index)
+        MUSIC.set_file(value)
+    except:
+        pass
 
 
 def run_display():
@@ -205,7 +227,8 @@ def run_display():
 
     # s1 = tk.Scale(win, variable=v1, from_=0.5, to=2.5, orient=HORIZONTAL)
     s1 = tk.Scale(win, from_=0.5, to=2.5, digits=2, resolution=0.05,
-                  orient=HORIZONTAL, sliderlength=60, length=300, width=50)
+                  orient=HORIZONTAL, sliderlength=60, length=300, width=50,
+                  command=set_slowness)
     s1.set(1.0)
 
     l3 = tk.Label(win, text="Slowness", font=("Courier", 20))
@@ -216,6 +239,7 @@ def run_display():
             l2.insert(i + 1, song)
 
         l2.place(x=250, y=250)
+        l2.bind('<<ListboxSelect>>', onselect)
 
     b1 = tk.Button(win, text="Song List", command=s2, bg="yellow")
     b1.place(x=250, y=150)
@@ -230,6 +254,6 @@ def run_display():
 
 
 if __name__ == "__main__":
-    pt = threading.Thread(target=main)
+    pt = threading.Thread(target=run_display)
     pt.start()
-    run_display()
+    main()
