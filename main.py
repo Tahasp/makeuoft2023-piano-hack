@@ -5,7 +5,7 @@ import threading
 from mido.midifiles.midifiles import time
 
 
-def list_select(selections: list[str], name: str):
+def list_select(selections, name):
     if len(set(selections)) == 1:
         return selections[0]
 
