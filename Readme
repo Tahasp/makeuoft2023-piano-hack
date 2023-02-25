@@ -1,4 +1,8 @@
-piano project
+Harmony Hacker
+
+They say that practice makes perfect but with our project "Harmony Hacker," you
+can confidently play the piano without any practice. Rain or shine, you will
+always play the correct notes.
 
 libs:
 ```
@@ -8,3 +12,5 @@ pip install mido
 ```
 pip install python-rtmidi
 ```
+
+Devpost: <https://devpost.com/software/harmony-hacker>
