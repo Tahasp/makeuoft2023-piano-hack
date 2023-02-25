@@ -8,7 +8,7 @@ from tkinter import HORIZONTAL, CENTER, BROWSE
 import glob
 import sys
 
-# import RPi.GPIO as GPIO
+import RPi.GPIO as GPIO
 
 
 def list_select(selections, name):
@@ -232,7 +232,7 @@ def run_display():
 
     button2 = tk.Button(text="Quit", width=15, height=8, bg="cyan", fg="red", font=("Courier", 18), command=lambda: quit(win))
     # button2.place(x=250, y=400)
-    button2.place(x=width//2, y=height//4 + height//3)
+    button2.place(x=width//2 - 200, y=height//4 + height//3)
 
     # s1 = tk.Scale(win, variable=v1, from_=0.5, to=2.5, orient=HORIZONTAL)
     s1 = tk.Scale(win, from_=0.5, to=2.5, digits=2, resolution=0.05,
@@ -247,11 +247,11 @@ def run_display():
         for i, song in enumerate(glob.glob("./*.mid")):
             l2.insert(i + 1, song)
 
-        l2.place(x=250, y=250)
+        l2.place(x=width//2 - 200, y=250)
         l2.bind('<<ListboxSelect>>', onselect)
 
     b1 = tk.Button(win, text="Song List", command=s2, bg="yellow")
-    b1.place(x=250, y=150)
+    b1.place(x=width//2 - 200, y=200)
 
     l1 = tk.Label(win)
     l1.pack()
@@ -262,55 +262,55 @@ def run_display():
     win.mainloop()
 
 
-# def detect_distance():
-#     try:
-#         GPIO.setmode(GPIO.BCM)
-#         GPIO.setwarnings(False)
+def detect_distance():
+    try:
+        GPIO.setmode(GPIO.BCM)
+        GPIO.setwarnings(False)
 
-#         TRIG = 23
-#         ECHO = 24
-#         maxTime = 0.04
+        TRIG = 23
+        ECHO = 24
+        maxTime = 0.04
 
-#         while True:
-#             GPIO.setup(TRIG,GPIO.OUT)
-#             GPIO.setup(ECHO,GPIO.IN)
+        while True:
+            GPIO.setup(TRIG,GPIO.OUT)
+            GPIO.setup(ECHO,GPIO.IN)
 
-#             GPIO.output(TRIG,False)
+            GPIO.output(TRIG,False)
 
-#             time.sleep(0.01)
+            time.sleep(0.01)
 
-#             GPIO.output(TRIG,True)
+            GPIO.output(TRIG,True)
 
-#             time.sleep(0.00001)
+            time.sleep(0.00001)
 
-#             GPIO.output(TRIG,False)
+            GPIO.output(TRIG,False)
 
-#             pulse_start = time.time()
-#             timeout = pulse_start + maxTime
-#             while GPIO.input(ECHO) == 0 and pulse_start < timeout:
-#                 pulse_start = time.time()
+            pulse_start = time.time()
+            timeout = pulse_start + maxTime
+            while GPIO.input(ECHO) == 0 and pulse_start < timeout:
+                pulse_start = time.time()
 
-#             pulse_end = time.time()
-#             timeout = pulse_end + maxTime
-#             while GPIO.input(ECHO) == 1 and pulse_end < timeout:
-#                 pulse_end = time.time()
+            pulse_end = time.time()
+            timeout = pulse_end + maxTime
+            while GPIO.input(ECHO) == 1 and pulse_end < timeout:
+                pulse_end = time.time()
 
-#             pulse_duration = pulse_end - pulse_start
-#             distance = pulse_duration * 17000
-#             distance = round(distance, 2)
+            pulse_duration = pulse_end - pulse_start
+            distance = pulse_duration * 17000
+            distance = round(distance, 2)
 
-#             # print(distance)
-#             if distance < 8:
-#                 set_volume(127)
-#             else:
-#                 set_volume(80)
-#     except:
-#         GPIO.cleanup()
+            # print(distance)
+            if distance < 8:
+                set_volume(127)
+            else:
+                set_volume(90)
+    except:
+        GPIO.cleanup()
 
 
 if __name__ == "__main__":
     pt = threading.Thread(target=run_display)
     pt.start()
-    # pt2 = threading.Thread(target=detect_distance)
-    # pt2.start()
+    pt2 = threading.Thread(target=detect_distance)
+    pt2.start()
     main()
